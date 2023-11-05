@@ -55,7 +55,11 @@ fn _shake128_absorb4x_34(reg ptr u256[25] s, reg ptr u8[34] m0 m1 m2 m3) -> reg 
 
 
 #[returnaddress="stack"]
-fn _shake256_absorb4x_33(reg ptr u256[25] s, reg ptr u8[33] m0 m1 m2 m3) -> reg ptr u256[25]
+fn _shake256_absorb4x_33(
+  #[public, poly=t] reg ptr u256[25] s,
+  #[public, secret] reg ptr u8[33] m0 m1 m2 m3
+) ->
+  #[public, poly=t] reg ptr u256[25]
 {
 	inline int i;
   reg u256 t0 t1;

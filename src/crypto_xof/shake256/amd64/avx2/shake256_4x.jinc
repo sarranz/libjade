@@ -3,15 +3,18 @@ from Jade require "common/keccak/keccak1600/amd64/avx2/keccakf1600_4x.jinc"
 from Jade require "common/keccak/common/fips202_params.jinc" // SHAKE256_RATE
 
 inline fn __shake256_squeezeblock4x(
-  reg ptr u256[25] state,
-  reg ptr u8[SHAKE256_RATE] h0 h1 h2 h3,
-  reg u64 ms)
-  ->
-  reg ptr u256[25],
-  reg ptr u8[SHAKE256_RATE],
-  reg ptr u8[SHAKE256_RATE],
-  reg ptr u8[SHAKE256_RATE],
-  reg ptr u8[SHAKE256_RATE],
+  #[public, poly=tstate] reg ptr u256[25] state,
+  #[public, poly=t0] reg ptr u8[SHAKE256_RATE] h0,
+  #[public, poly=t1] reg ptr u8[SHAKE256_RATE] h1,
+  #[public, poly=t2] reg ptr u8[SHAKE256_RATE] h2,
+  #[public, poly=t3] reg ptr u8[SHAKE256_RATE] h3,
+  #msf reg u64 ms
+) ->
+  #[public, poly=tstate] reg ptr u256[25],
+  #[public, poly=t0] reg ptr u8[SHAKE256_RATE],
+  #[public, poly=t1] reg ptr u8[SHAKE256_RATE],
+  #[public, poly=t2] reg ptr u8[SHAKE256_RATE],
+  #[public, poly=t3] reg ptr u8[SHAKE256_RATE],
   #msf reg u64
 {
   reg u256 t256;
