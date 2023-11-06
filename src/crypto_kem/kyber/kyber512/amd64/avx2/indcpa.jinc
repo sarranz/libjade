@@ -50,8 +50,8 @@ fn __indcpa_keypair_derand(reg u64 pkp, reg u64 skp, reg ptr u8[KYBER_SYMBYTES] 
   skp = sskp;
   skp = #protect(skp, ms);
 
-  __polyvec_tobytes(skp, skpv);
-  __polyvec_tobytes(pkp, pkpv);
+  ms = __polyvec_tobytes(skp, skpv, ms);
+  ms = __polyvec_tobytes(pkp, pkpv, ms);
 
   pkp += KYBER_POLYVECBYTES;
 
@@ -80,7 +80,7 @@ fn __indcpa_enc_0(stack u64 sctp, reg ptr u8[KYBER_INDCPA_MSGBYTES] msgp, reg u6
   inline int w;
   reg bool b;
 
-  pkpv = __polyvec_frombytes(pkp);
+  pkpv, ms = __polyvec_frombytes(pkp, ms);
 
   i = 0;
   pkp += KYBER_POLYVECBYTES;
@@ -131,7 +131,7 @@ fn __indcpa_enc_0(stack u64 sctp, reg ptr u8[KYBER_INDCPA_MSGBYTES] msgp, reg u6
   ctp = #protect(ctp, ms);
   __polyvec_compress(ctp, bp);
   ctp += KYBER_POLYVECCOMPRESSEDBYTES;
-  v = _poly_compress(ctp, v);
+  v, ms = _poly_compress(ctp, v, ms);
 
   return ms;
 }
@@ -154,7 +154,7 @@ fn __indcpa_enc_1(reg ptr u8[KYBER_INDCPA_BYTES] ctp, reg ptr u8[KYBER_INDCPA_MS
 
   sctp = ctp;
 
-  pkpv = __polyvec_frombytes(pkp);
+  pkpv, ms = __polyvec_frombytes(pkp, ms);
 
   i = 0;
   pkp += KYBER_POLYVECBYTES;
@@ -204,14 +204,14 @@ fn __indcpa_enc_1(reg ptr u8[KYBER_INDCPA_BYTES] ctp, reg ptr u8[KYBER_INDCPA_MS
   ctp = sctp;
   ctp = #protect_ptr(ctp, ms);
   ctp[0:KYBER_POLYVECCOMPRESSEDBYTES] = __polyvec_compress_1(ctp[0:KYBER_POLYVECCOMPRESSEDBYTES], bp);
-  ctp[KYBER_POLYVECCOMPRESSEDBYTES:KYBER_POLYCOMPRESSEDBYTES], v = _poly_compress_1(ctp[KYBER_POLYVECCOMPRESSEDBYTES:KYBER_POLYCOMPRESSEDBYTES], v);
+  ctp[KYBER_POLYVECCOMPRESSEDBYTES:KYBER_POLYCOMPRESSEDBYTES], v, ms = _poly_compress_1(ctp[KYBER_POLYVECCOMPRESSEDBYTES:KYBER_POLYCOMPRESSEDBYTES], v, ms);
 
   return ctp, ms;
 }
 
 
 inline
-fn __indcpa_dec(reg ptr u8[KYBER_INDCPA_MSGBYTES] msgp, reg u64 ctp, reg u64 skp) -> reg ptr u8[KYBER_INDCPA_MSGBYTES]
+fn __indcpa_dec(reg ptr u8[KYBER_INDCPA_MSGBYTES] msgp, reg u64 ctp, reg u64 skp, reg u64 ms) -> reg ptr u8[KYBER_INDCPA_MSGBYTES], #msf reg u64
 {
   stack u16[KYBER_N] t v mp;
   stack u16[KYBER_VECN] bp skpv;
@@ -220,7 +220,10 @@ fn __indcpa_dec(reg ptr u8[KYBER_INDCPA_MSGBYTES] msgp, reg u64 ctp, reg u64 skp
   ctp += KYBER_POLYVECCOMPRESSEDBYTES;
   v = _poly_decompress(v, ctp);
 
-  skpv = __polyvec_frombytes(skp);
+  skp = skp;
+  skp = #protect(skp, ms);
+
+  skpv, ms = __polyvec_frombytes(skp, ms);
   
   bp = __polyvec_ntt(bp);
   t = __polyvec_pointwise_acc(t, skpv, bp);
@@ -229,7 +232,7 @@ fn __indcpa_dec(reg ptr u8[KYBER_INDCPA_MSGBYTES] msgp, reg u64 ctp, reg u64 skp
   mp = _poly_sub(mp, v, t);
   mp = __poly_reduce(mp);
   
-  msgp, mp = _poly_tomsg_1(msgp, mp);
+  msgp, mp, ms = _poly_tomsg_1(msgp, mp, ms);
 
-  return msgp;
+  return msgp, ms;
 }

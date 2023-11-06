@@ -169,20 +169,26 @@ fn __polyvec_compress_1(reg ptr u8[KYBER_POLYVECCOMPRESSEDBYTES] rp, stack u16[K
 }
 
 inline
-fn __polyvec_frombytes(reg u64 ap) -> stack u16[KYBER_VECN]
+fn __polyvec_frombytes(reg u64 ap, reg u64 ms) -> stack u16[KYBER_VECN], #msf reg u64
 {
-  stack u16[KYBER_VECN] r;
+  stack u16[KYBER_VECN] s_r;
+  reg ptr u16[KYBER_VECN] r;
   reg u64 pp;
   inline int i;
 
+  r = s_r;
   pp = ap;
   for i=0 to KYBER_K
   {
     r[i*KYBER_N:KYBER_N] = _poly_frombytes(r[i*KYBER_N:KYBER_N], pp);
+    pp = #protect(pp, ms);
+    r = #protect_ptr(r, ms);
     pp += KYBER_POLYBYTES;
   }
 
-  return r;
+  s_r = r;
+
+  return s_r, ms;
 }
 
 
@@ -247,7 +253,7 @@ fn __polyvec_pointwise_acc(stack u16[KYBER_N] r, stack u16[KYBER_VECN] a b) -> s
 
 
 inline
-fn __polyvec_tobytes(reg u64 rp, stack u16[KYBER_VECN] a)
+fn __polyvec_tobytes(reg u64 rp, stack u16[KYBER_VECN] a, reg u64 ms) -> #msf reg u64
 {
   reg u64 pp;
   inline int i;
@@ -256,6 +262,9 @@ fn __polyvec_tobytes(reg u64 rp, stack u16[KYBER_VECN] a)
   for i=0 to KYBER_K
   {
     a[i*KYBER_N:KYBER_N] = _poly_tobytes(pp, a[i*KYBER_N:KYBER_N]);
+    pp = #protect(pp, ms);
     pp += KYBER_POLYBYTES;
   }
+
+  return ms;
 }
