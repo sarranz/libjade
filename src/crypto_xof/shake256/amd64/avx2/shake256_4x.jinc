@@ -18,7 +18,16 @@ inline fn __shake256_squeezeblock4x(
   reg u128 t128;
   inline int i;
 
-  state = __keccakf1600_4x_avx2(state);
+  stack ptr u8[SHAKE256_RATE] s_h0 s_h1 s_h2 s_h3;
+  s_h0 = h0;
+  s_h1 = h1;
+
+  state, ms = __keccakf1600_4x_avx2(state, ms);
+
+  h0 = s_h0;
+  h0 = #protect_ptr(h0, ms);
+  h1 = s_h1;
+  h1 = #protect_ptr(h1, ms);
 
 	for i = 0 to (SHAKE256_RATE / 8) {
     t256 = state[i];
@@ -30,6 +39,5 @@ inline fn __shake256_squeezeblock4x(
 		h3[u64 i] = #VMOVHPD(t128);
 	}
 
-  ms = #init_msf();
   return state, h0, h1, h2, h3, ms;
 }

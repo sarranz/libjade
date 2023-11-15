@@ -18,7 +18,7 @@ inline fn __shake128_squeezeblock4x(
   reg u128 t128;
   inline int i;
 
-  state = __keccakf1600_4x_avx2(state);
+  state, ms = __keccakf1600_4x_avx2(state, ms);
 
 	for i = 0 to (SHAKE128_RATE / 8) {
     t256 = state[i];
@@ -30,6 +30,5 @@ inline fn __shake128_squeezeblock4x(
 		h3[u64 i] = #VMOVHPD(t128);
 	}
 
-  ms = #init_msf();
   return state, h0, h1, h2, h3, ms;
 }

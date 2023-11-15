@@ -56,9 +56,10 @@ inline fn __rol_4x_avx2(reg u256[5] a, inline int x r, reg u256 r8 r56) -> reg u
 {
 	reg u256 t;
 
+  #inline
   if(r == 8)
   {	a[x] = #VPSHUFB_256(a[x], r8); }
-  else { if(r == 56)
+  else { #inline if(r == 56)
   { a[x] = #VPSHUFB_256(a[x], r56); }
   else
   { t     = #VPSLL_4u64(a[x], r);
@@ -118,6 +119,7 @@ inline fn __rol_sum_4x_avx2(
     b[x] ^= d[x_];
 
     // B[x] = ROT( B[x], r[x',y'] );
+    #inline
     if(r != 0)
     { b = __rol_4x_avx2(b, x, r, r8, r56); }
   }
@@ -146,6 +148,7 @@ inline fn __set_row_4x_avx2(
     t = #VPANDN_256(b[x1], b[x2]);
 
     t ^= b[x];
+    #inline
     if( x==0 && y==0 ){ t ^= rc; }
     e[x + y*5] = t;
   }
@@ -171,7 +174,7 @@ inline fn __round_4x_avx2(reg ptr u256[25] e a, reg u256 rc r8 r56) -> reg ptr u
 }
 
 
-inline fn __keccakf1600_4x_avx2(reg ptr u256[25] a) -> reg ptr u256[25]
+inline fn __keccakf1600_4x_avx2(reg ptr u256[25] a, reg u64 ms) -> reg ptr u256[25], #msf reg u64
 {
   reg ptr u256[24] RC;
   stack u256[25] s_e;
@@ -185,6 +188,8 @@ inline fn __keccakf1600_4x_avx2(reg ptr u256[25] a) -> reg ptr u256[25]
   r8 = ROL8;
   r56 = ROL56;
 
+  inline bool cond;
+
   c = 0;
   while
   {
@@ -195,24 +200,28 @@ inline fn __keccakf1600_4x_avx2(reg ptr u256[25] a) -> reg ptr u256[25]
     a = __round_4x_avx2(a, e, rc, r8, r56);
 
     c += 64;
-  } (c < (KECCAK_ROUNDS*32))
+    cond = c < (KECCAK_ROUNDS*32);
+  } (cond) {
+    ms = #update_msf(cond, ms);
+  }
+  ms = #update_msf(!cond, ms);
 
-  return a;
+  return a, ms;
 }
 
 #[returnaddress="stack"]
-fn _keccakf1600_4x_avx2(reg ptr u256[25] a) -> reg ptr u256[25]
+fn _keccakf1600_4x_avx2(reg ptr u256[25] a, reg u64 ms) -> reg ptr u256[25], #msf reg u64
 {
-  a = __keccakf1600_4x_avx2(a);
-  return a;
+  a, ms = __keccakf1600_4x_avx2(a, ms);
+  return a, ms;
 }
 
 
-inline fn _keccakf1600_4x_avx2_(reg ptr u256[25] a) -> reg ptr u256[25]
+inline fn _keccakf1600_4x_avx2_(reg ptr u256[25] a, reg u64 ms) -> reg ptr u256[25], #msf reg u64
 {
   a = a;
-  a = _keccakf1600_4x_avx2(a);
+  a, ms = _keccakf1600_4x_avx2(a, ms);
   a = a;
-  return a;
+  return a, ms;
 }
 
