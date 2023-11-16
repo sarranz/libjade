@@ -176,23 +176,21 @@ inline fn __round_4x_avx2(reg ptr u256[25] e a, reg u256 rc r8 r56) -> reg ptr u
 
 inline fn __keccakf1600_4x_avx2(reg ptr u256[25] a, reg u64 ms) -> reg ptr u256[25], #msf reg u64
 {
-  reg ptr u256[24] RC;
   stack u256[25] s_e;
   reg ptr u256[25] e;
   reg u256 rc r8 r56;
 
   e = s_e;
-  RC = KECCAK1600_RC_4x;
 
   r8 = ROL8;
   r56 = ROL56;
 
   inline int i;
   for i = 0 to KECCAK_ROUNDS/2 {
-    rc = RC.[i * 64];
+    rc = KECCAK1600_RC_4x[i * 2];
     e = __round_4x_avx2(e, a, rc, r8, r56);
 
-    rc = RC.[i * 64 + 32];
+    rc = KECCAK1600_RC_4x[i * 2 + 1];
     a = __round_4x_avx2(a, e, rc, r8, r56);
   }
 
