@@ -5,15 +5,3 @@
 EXTERNAL_PATH    = $(subst $(BIN),external,$(@D))
 EXTERNAL_LIB     = ../test/$(EXTERNAL_PATH)/$(subst -,_,$(subst /,_,$(EXTERNAL_PATH))).a
 EXTERNAL_COMPILE = $(CC) $(CFLAGS) -o $@ $(DEFINE) $(DNAMESPACES) $(INCLUDES) $(MAIN) $(PRINT) $(ASM) $(RANDLIB) $(EXTERNAL_LIB) -lgsl $(CIL)
-
-#-- falcon512
-
-bin/crypto_sign/falcon/falcon512/amd64/avx2/bench: __phony | bin/crypto_sign/falcon/falcon512/amd64/avx2/ bin/crypto_sign/falcon/falcon512/amd64/avx2/$(CID)
-	$(MAKE) -C $(IDIR) || true
-	$(CIC)
-	$(MAKE) -C ../test/$(EXTERNAL_PATH)
-	$(EXTERNAL_COMPILE) || true
-
-#-- clean
-clean-external:
-	$(MAKE) -C ../test/external/crypto_sign/falcon/falcon512/amd64/avx2 clean
